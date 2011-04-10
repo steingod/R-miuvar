@@ -3,8 +3,7 @@
 # readuvi
 #
 # PURPOSE:
-# To read collocatiohn files containing UV index estimates and
-# observations.
+# To read ASCII files containing UV index estimates.
 #
 # REQUIREMENTS:
 # NA
@@ -28,17 +27,18 @@
 # NA
 #
 # CVS_ID:
-# $Id: readuvi.R,v 1.1 2011-04-07 10:14:23 steingod Exp $
+# $Id: readuvi.R,v 1.2 2011-04-10 18:29:38 steingod Exp $
 #
 
 readuvi <- function(filename) {
 
+    mytimestring <- scan(filename,skip=1,nlines=1,sep=":",
+            what=list("character","character"),nmax=2)
+    mytime <- strptime(mytimestring[2]," %Y%m%d%H%M%S",tz="GMT")
     t <- read.table(filename,
-	    col.names=c("Year","Month","Day","Hour","Minute",
-	    "Station", 
-	    "Obs","Clear","Broken","Cloudy","Forecast"))
+	    col.names=c("lat","lon","uvic","uvipoc","uvioc","uvifcc",
+	    "ozone","snow","cloud","albedo","altitude","soz"),
+            skip=4)
 
-    mytime <- ISOdatetime(t$Year,t$Month,t$Day,t$Hour,t$Minute,0)
-
-    return(data.frame(year=t$Year,month=t$Month,day=t$Day,hour=t$Hour,min=t$Minute,date=mytime,station=t$Station,observed=t$Obs,estclear=t$Clear,estbroken=t$Broken,estcloud=t$Cloudy,estforecast=t$Forecast))
+    return(list(validtime=mytime,data=t))
 }
