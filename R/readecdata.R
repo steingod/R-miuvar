@@ -30,11 +30,12 @@
 # NA
 #
 # CVS_ID:
-# $Id: readecdata.R,v 1.1 2011-04-07 10:14:24 steingod Exp $
+# $Id: readecdata.R,v 1.2 2011-05-06 08:42:57 steingod Exp $
 #
-readecdata <- function(file, plot=TRUE, myfield=4) {
+readecdata <- function(file, plot=TRUE, myfield=4, proj="latlon") {
 
     library(RNetCDF)
+    library(maps)
     nc <- open.nc(file)
 
     print.nc(nc)
@@ -47,21 +48,48 @@ readecdata <- function(file, plot=TRUE, myfield=4) {
 ##    myplatform <- att.get.nc(nc,"NC_GLOBAL","Platform_name")
 ##    mystartdate <- att.get.nc(nc,"NC_GLOBAL","start_date")
 ##    mystopdate <- att.get.nc(nc,"NC_GLOBAL","stop_date")
-    mylatitude <- var.get.nc(nc,"lat")
-    mylongitude <- var.get.nc(nc,"lon")
+    if (proj=="polster") {
+        mylatitude <- var.get.nc(nc,"latitude")
+        require(osisaf)
+        data(osisafmapdata)
+        mymap <- 1000*latlon2ucs(osisafmapdata$lat,osisafmapdata$lon)
+    } else {
+        mylatitude <- rev(var.get.nc(nc,"latitude"))
+    }
+    mylongitude <- var.get.nc(nc,"longitude")
 
-    myozone <- var.get.nc(nc,"TCO3_sfc")/2.1415e-5
+    myozone <- var.get.nc(nc,"tco3")/2.1415e-5
 
-    myvaltime <- ISOdatetime(1992,1,1,0,0,0,tz="GMT")+(var.get.nc(nc,"valtime")*3600)
-    myreftime <- ISOdatetime(1992,1,1,0,0,0,tz="GMT")+(var.get.nc(nc,"reftime")*3600)
+    if (proj=="polster") {
+        myxmaplim <- c(min(mylongitude),max(mylongitude))
+        myymaplim <- c(min(mylatitude),max(mylatitude))
+        myxdim <- myxmaplim[2]-myxmaplim[1]
+        myydim <- myymaplim[2]-myymaplim[1]
+        aspectratio <- myxdim/myydim
+    }
+
+    myvaltime <- ISOdatetime(1970,1,1,0,0,0,tz="GMT")+(var.get.nc(nc,"time"))
+    myreftime <- ISOdatetime(1970,1,1,0,0,0,tz="GMT")+(var.get.nc(nc,"forecast_reference_time"))
 
     close.nc(nc)
 
     if (plot==TRUE) {
         par(pty="s")
-        image(mylongitude,mylatitude,myozone[,,myfield],col=rainbow(12),xlab="Longitude",ylab="Latitude")
-        contour(mylongitude,mylatitude,myozone[,,myfield],add=T)
-        map(xlim=c(min(mylongitude),max(mylongitude)),ylim=c(min(mylatitude),max(mylatitude)),add=T,col="black")
+        if (proj=="polster") {
+            par(plt=c(0.5-(aspectratio/2),0.5+(aspectratio/2),0,1))
+        }
+        if (proj=="polster") {
+            image(mylongitude,mylatitude,myozone[,,myfield],col=rainbow(12),xaxt="n",yaxt="n")
+            contour(mylongitude,mylatitude,myozone[,,myfield],add=T)
+        } else {
+            image(mylongitude,mylatitude,myozone[,length(mylatitude):1,myfield],col=rainbow(12),xlab="Longitude",ylab="Latitude")
+            contour(mylongitude,mylatitude,myozone[,length(mylatitude):1,myfield],add=T)
+        }
+        if (proj=="polster") {
+            lines(mymap$eastings,mymap$northings,new=TRUE)
+        } else {
+            map(xlim=c(min(mylongitude),max(mylongitude)),ylim=c(min(mylatitude),max(mylatitude)),add=T,col="black")
+        }
         title(paste("Total ozone amount in Dobson Units for",
         strftime(myvaltime[myfield],"%F %H:%M UTC",tz="GMT")), 
         sub=paste("ECMWF forecast ",
