@@ -30,11 +30,11 @@
 # NA
 #
 # CVS_ID:
-# $Id: uviimage.R,v 1.2 2012-05-23 08:15:32 steingod Exp $
+# $Id: uviimage.R,v 1.3 2012-05-23 08:44:14 steingod Exp $
 #
 
 uviimage <- function(myparam="uvic", mydata, projection=FALSE,
-mycolors=heat.colors(100)) {
+mycolors=uvicolors()) {
 
     library(lattice)
     library(maps)

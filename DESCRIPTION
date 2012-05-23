@@ -1,6 +1,6 @@
 Package: miuvar
-Version: 0.2
-Date: 2011-04-07
+Version: 0.3
+Date: 2012-05-23
 Title: Analysis and visualisation of UV-index datafiles
 Author: Oystein Godoy, met.no/FOU
 Description: This package contains functions for reading, analysis and
@@ -9,6 +9,6 @@ Description: This package contains functions for reading, analysis and
 	Protection Authority.
 Maintainer: Oystein Godoy, met.no/FOU <o.godoy@met.no>
 Depends: 
-Imports: RNetCDF
+Imports: RNetCDF, maps, proj4, lattice
 Suggests:
 License: GPL (version 2)

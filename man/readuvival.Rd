@@ -1,13 +1,13 @@
-\name{readuvi}
+\name{readuvival}
 
-\alias{readuvi}
+\alias{readuvival}
 
 \title{
-    Read UV index estimates
+    Read validation files for UV index estimates
 }
 
 \description{
-    Reasds ASCII files containing collocated UV index estimates and
+    Reads ASCII files containing collocated UV index estimates and
     observations. Observations are collected from NRPAs observation
     network and stations are identified using short names.
 }
@@ -24,6 +24,7 @@
 }
 
 \seealso{
+    \link{readuvi}
 }
 
 \author{

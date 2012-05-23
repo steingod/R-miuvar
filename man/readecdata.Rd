@@ -14,6 +14,7 @@
 }
 
 \usage{
+    readecdata(file,plot=TRUE,myfield)
 }
 
 \arguments{

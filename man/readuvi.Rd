@@ -7,12 +7,12 @@
 }
 
 \description{
-    Reasds ASCII files containing collocated UV index estimates and
-    observations. Observations are collected from NRPAs observation
-    network and stations are identified using short names.
+    Reads ASCII files containing UV index estimates generated using
+    libRadtran at the Norwegian Meteorological institute. 
 }
 
 \usage{
+    readuvi(filename)
 }
 
 \arguments{
@@ -20,10 +20,11 @@
 }
 
 \value{
-    \link{data.frame}
+    \link{list} with validtime and data as \link{data.frame}
 }
 
 \seealso{
+    \link{readuvival}
 }
 
 \author{
