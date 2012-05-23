@@ -30,76 +30,52 @@
 # NA
 #
 # CVS_ID:
-# $Id: uviimage.R,v 1.1 2012-05-22 11:19:36 steingod Exp $
+# $Id: uviimage.R,v 1.2 2012-05-23 08:15:32 steingod Exp $
 #
 
-uviimage <- function(myparam="uvic", mydata, projection=FALSE, mycolors=) {
+uviimage <- function(myparam="uvic", mydata, projection=FALSE,
+mycolors=heat.colors(100)) {
 
     library(lattice)
     library(maps)
     library(mapdata)
     if (projection) {
-        library(mapproj)
+        #library(mapproj)
+        library(proj4)
     }
 
+    mymap <- map("worldHires",plot=F)
+    tmpmat <- cbind(x=mymap$x, y=mymap$y)
     if (projection) {
-        mymap <- map("worldHires",plot=F, projection="stereographic", 
-                orientation=c(60, 0, 0))
-        mynewcoord <- mapproject(mydata$data$lon, mydata$data$lat,
-                projection="stereographic", orientation=c(60,0,0))
-        mydata$data$ucsx <- round(mynewcoord$x,digits=2)
-        mydata$data$ucsy <- round(mynewcoord$y,digits=2)
+        mymap <- project(tmpmat,proj="+proj=stere +lat_ts=60 +lat_0=90 +lon_0=0 +a=6371 +b=6371 +units=km")
+        mynewcoord <- project(list(mydata$data$lon, mydata$data$lat),proj="+proj=stere +lat_ts=60 +lat_0=90 +lon_0=0 +a=6371 +b=6371 +units=km")
+                
+        mydata$data$ucsx <- round((round(mynewcoord$x*100/3)*3)/100,digits=2)
+        mydata$data$ucsy <- round((round(mynewcoord$y*100/3)*3)/100,digits=2)
         cat("Using map projection...\n")
-##        mycols <- sort(unique(mydata$data$ucsy))
-##        myrows <- sort(unique(mydata$data$ucsx))
-##        myncol <- length(mycols)
-##        mynrow <- length(myrows)
-##        mymat <- matrix(NA, nrow=mynrow, ncol=myncol,
-##                dimnames=list(
-##                    formatC(myrows, format="f", digits=2),
-##                    formatC(mycols, format="f", digits=2))) 
-##        myindx <- match(formatC(mydata$data$ucsy,format="f",digits=2),colnames(mymat))
-##        myindy <- match(formatC(mydata$data$ucsx,format="f",digits=2),rownames(mymat))
-##        myindmat <- cbind(myindy,myindx)
-##        myindmattmp <- myindmat[! is.na(myindmat[,2]),]
-##        myindmat <- myindmattmp
-        #return(data.frame(myindy, myindx, lat=mydata$data$lat,
-        #            lon=mydata$data$lon, ucsy=mydata$data$ucsy, ucsx=mydata$data$ucsx))
-##        mymat[myindmat] <- mydata$data$uvic
     } else {
-        mymap <- map("worldHires",plot=F)
         cat("No map projection...\n")
-##        mycols <- sort(unique(mydata$data$lat))
-##        myrows <- sort(unique(mydata$data$lon))
-##        mynrow <- length(myrows)
-##        myncol <- length(mycols)
-##        mymat <- matrix(NA, nrow=mynrow, ncol=myncol,
-##                dimnames=list(
-##                    formatC(myrows, format="f", digits=2),
-##                    formatC(mycols, format="f", digits=2))) 
-##        myindx <- match(formatC(mydata$data$lat,format="f",digits=2),colnames(mymat))
-##        myindy <- match(formatC(mydata$data$lon,format="f",digits=2),rownames(mymat))
-##        myindmat <- cbind(myindy,myindx)
-##        mymat[myindmat] <- mydata$data$uvic
+        mymap <- tmpmat
     }
-    #image(myrows,mycols,mymat)
-    #return(mymat)
 
     if (projection) {
         cat("Using map projection...\n")
-        levelplot(uvic~ucsx*ucsy,
+        contourplot(uvic~ucsx*ucsy,
                 data=mydata$data,aspect="iso",
-                region=T, contour=F,
-                panel=function(...,mymap){panel.levelplot(...); panel.lines(mymap$x,mymap$y,col="black")},
-                mymap=mymap, col.regions=heat.colors(100))
+                region=T, contour=T, at=c(0,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5,10.5,11.5),
+                panel=function(...,mymap){panel.levelplot(...);
+                panel.lines(mymap,col="grey")},
+                mymap=mymap, col.regions=mycolors,
+                main=paste("UV index estimate for",mydata$validtime))
     } else {
         cat("No map projection...\n")
-        levelplot(uvic~lon*lat, 
+        contourplot(uvic~lon*lat, 
                 data=mydata$data,aspect="iso", 
-                panel=function(...,mymap){panel.levelplot(...); panel.lines(mymap$x,mymap$y,col="black")},
-                mymap=mymap, col.regions=heat.colors(100)) 
+                region=T, contour=T, at=c(0,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5,10.5,11.5),
+                panel=function(...,mymap){panel.levelplot(...);
+                panel.lines(mymap,col="grey")},
+                mymap=mymap, col.regions=mycolors,
+                main=paste("UV index estimate for",mydata$validtime)) 
     }
-    #title(paste("UV index estimate for",mydata$validtime))
-    #return(mydata)
 }
 
