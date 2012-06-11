@@ -17,7 +17,7 @@
 }
 
 \usage{
-    uviimage(myparam="uvic", mydata, projection=FALSE, mycolors=heat.colors(100)
+    uviimage(myparam="uvic", mydata, projection=FALSE, mycolors=uvicolors(100))
 }
 
 \arguments{

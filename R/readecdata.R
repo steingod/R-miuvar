@@ -30,9 +30,10 @@
 # NA
 #
 # CVS_ID:
-# $Id: readecdata.R,v 1.2 2011-05-06 08:42:57 steingod Exp $
+# $Id: readecdata.R,v 1.3 2012-06-11 20:51:29 steingod Exp $
 #
-readecdata <- function(file, plot=TRUE, myfield=4, proj="latlon") {
+readecdata <- function(file, plot=TRUE, myfield=4, proj="latlon",
+mycolors=heat.colors(100)) {
 
     library(RNetCDF)
     library(maps)
@@ -57,10 +58,21 @@ readecdata <- function(file, plot=TRUE, myfield=4, proj="latlon") {
         mylatitude <- rev(var.get.nc(nc,"latitude"))
     }
     mylongitude <- var.get.nc(nc,"longitude")
-
+    tmp <- ifelse(mylongitude>180,mylongitude-360,mylongitude)
+    myind <- which(tmp==0)
+    mylen <- length(tmp)
+    mylen1 <- length(tmp[tmp<0])
+    mylen2 <- length(tmp[tmp>=0])
+    mylongitude[1:mylen1] <- tmp[(mylen2+1):(mylen2+mylen1)]
+    mylongitude[(mylen1+1):(mylen1+mylen2)] <- tmp[1:(mylen2)]
+    #return(list(mylen,myind,mylen1,mylen2,mylongitude))
+    
     myozone <- var.get.nc(nc,"tco3")/2.1415e-5
+    tmp <- myozone
+    myozone[1:mylen1,,] <- tmp[(mylen2+1):(mylen2+mylen1),,]
+    myozone[(mylen1+1):(mylen1+mylen2),,] <- tmp[1:(mylen2),,]
 
-    if (proj=="polster") {
+    if (proj=="polster" || proj=="latlon") {
         myxmaplim <- c(min(mylongitude),max(mylongitude))
         myymaplim <- c(min(mylatitude),max(mylatitude))
         myxdim <- myxmaplim[2]-myxmaplim[1]
@@ -74,21 +86,28 @@ readecdata <- function(file, plot=TRUE, myfield=4, proj="latlon") {
     close.nc(nc)
 
     if (plot==TRUE) {
-        par(pty="s")
-        if (proj=="polster") {
-            par(plt=c(0.5-(aspectratio/2),0.5+(aspectratio/2),0,1))
+        par(pty="m")
+        if (proj=="polster" || proj=="latlon") {
+            #par(plt=c(0.5-(aspectratio/2),0.5+(aspectratio/2),0,1))
+            mypin <- par()$pin
+            if (aspectratio > 1) {
+                mypin[2] <- mypin[2]/aspectratio
+            }
+            par(pin=mypin)
         }
         if (proj=="polster") {
-            image(mylongitude,mylatitude,myozone[,,myfield],col=rainbow(12),xaxt="n",yaxt="n")
+            image(mylongitude,mylatitude,myozone[,,myfield],col=mycolors,xaxt="n",yaxt="n")
             contour(mylongitude,mylatitude,myozone[,,myfield],add=T)
         } else {
-            image(mylongitude,mylatitude,myozone[,length(mylatitude):1,myfield],col=rainbow(12),xlab="Longitude",ylab="Latitude")
+            image(mylongitude,mylatitude,myozone[,length(mylatitude):1,myfield],col=mycolors,xlab="Longitude",ylab="Latitude")
             contour(mylongitude,mylatitude,myozone[,length(mylatitude):1,myfield],add=T)
         }
         if (proj=="polster") {
             lines(mymap$eastings,mymap$northings,new=TRUE)
         } else {
-            map(xlim=c(min(mylongitude),max(mylongitude)),ylim=c(min(mylatitude),max(mylatitude)),add=T,col="black")
+            #map(xlim=c(min(mylongitude),max(mylongitude)),ylim=c(min(mylatitude),max(mylatitude)),add=T,col="black")
+            mymap <- map(plot=F)
+            lines(mymap$x,mymap$y,new=TRUE,lwd=2)
         }
         title(paste("Total ozone amount in Dobson Units for",
         strftime(myvaltime[myfield],"%F %H:%M UTC",tz="GMT")), 
