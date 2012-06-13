@@ -31,7 +31,7 @@
 # NA
 #
 # CVS_ID:
-# $Id: uviimage.R,v 1.4 2012-06-11 20:51:29 steingod Exp $
+# $Id: uviimage.R,v 1.5 2012-06-13 11:38:18 steingod Exp $
 #
 
 uviimage <- function(myparam="uvic", mydata, projection=FALSE,
@@ -90,8 +90,8 @@ mycolors=uvicolors(), mode="image", section=c(-180,180,-90,90)) {
             map(fill=TRUE, col="seashell", bg="skyblue",
                 interior=FALSE, xlim=myxlim, ylim=myylim)
             myvalues <- round(mydata$data$uvic)
-            myvalues <- ifelse(myvalues>11,11,myvalues)
-            points(mydata$data$lon,mydata$data$lat,pch=24,bg=mycolors[myvalues],cex=2)
+            mycolindex <- ifelse(myvalues>11,11,myvalues)
+            points(mydata$data$lon,mydata$data$lat,pch=24,bg=mycolors[mycolindex],cex=2)
             text(mydata$data$lon,mydata$data$lat,labels=myvalues,cex=0.6)
             title(paste("UV index estimate for",mydata$validtime))
         }
